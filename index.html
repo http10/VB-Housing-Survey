@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Housing Survey Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4CAF50',
+                        secondary: '#2E7D32',
+                        accent: '#8BC34A',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .camera-preview {
+            width: 200px;
+            height: 150px;
+            background-color: #f0f0f0;
+            border: 2px dashed #ccc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+        .camera-preview img {
+            max-width: 100%;
+            max-height: 100%;
+        }
+        .hidden {
+            display: none;
+        }
+        .form-section {
+            transition: all 0.3s ease;
+        }
+        .form-section:not(.active) {
+            opacity: 0;
+            height: 0;
+            overflow: hidden;
+        }
+        .form-section.active {
+            opacity: 1;
+            height: auto;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Auth Section -->
+    <div id="auth-section" class="flex items-center justify-center min-h-screen">
+        <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-primary">Housing Survey Pro</h1>
+                <p class="text-gray-600">Professional housing survey solution</p>
+            </div>
+            
+            <div id="login-form" class="space-y-4">
+                <h2 class="text-xl font-semibold text-gray-800">Login</h2>
+                <div>
+                    <label class="block text-gray-700 mb-1">Email</label>
+                    <input type="email" id="login-email" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+                <div>
+                    <label class="block text-gray-700 mb-1">Password</label>
+                    <input type="password" id="login-password" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+                <button onclick="login()" class="w-full bg-primary text-white py-2 rounded-lg hover:bg-secondary transition">Login</button>
+                <p class="text-center text-gray-600">Don't have an account? <button onclick="toggleAuthForms()" class="text-primary font-medium">Register</button></p>
+            </div>
+            
+            <div id="register-form" class="space-y-4 hidden">
+                <h2 class="text-xl font-semibold text-gray-800">Register</h2>
+                <div>
+                    <label class="block text-gray-700 mb-1">Full Name</label>
+                    <input type="text" id="register-name" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+                <div>
+                    <label class="block text-gray-700 mb-1">Email</label>
+                    <input type="email" id="register-email" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+                <div>
+                    <label class="block text-gray-700 mb-1">Password</label>
+                    <input type="password" id="register-password" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+                <div>
+                    <label class="block text-gray-700 mb-1">Confirm Password</label>
+                    <input type="password" id="register-confirm-password" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+                <button onclick="register()" class="w-full bg-primary text-white py-2 rounded-lg hover:bg-secondary transition">Register</button>
+                <p class="text-center text-gray-600">Already have an account? <button onclick="toggleAuthForms()" class="text-primary font-medium">Login</button></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App Section -->
+    <div id="app-section" class="hidden">
+        <!-- Header -->
+        <header class="bg-primary text-white shadow-md">
+            <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-home text-2xl"></i>
+                    <h1 class="text-xl font-bold">Housing Survey Pro</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span id="user-email" class="font-medium"></span>
+                    <button onclick="logout()" class="bg-white text-primary px-4 py-1 rounded-lg hover:bg-gray-100 transition">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="container mx-auto px-4 py-8">
+            <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                <!-- Form Navigation -->
+                <div class="flex border-b">
+                    <button onclick="showSection('survey-form')" class="flex-1 py-4 px-6 text-center font-medium text-primary border-b-2 border-primary">
+                        <i class="fas fa-clipboard-list mr-2"></i>New Survey
+                    </button>
+                    <button onclick="showSection('search-form')" class="flex-1 py-4 px-6 text-center font-medium text-gray-500 hover:text-primary">
+                        <i class="fas fa-search mr-2"></i>Search Records
+                    </button>
+                    <button onclick="showSection('reports')" class="flex-1 py-4 px-6 text-center font-medium text-gray-500 hover:text-primary">
+                        <i class="fas fa-chart-bar mr-2"></i>Reports
+                    </button>
+                </div>
+
+                <!-- Survey Form -->
+                <div id="survey-form" class="form-section active p-6">
+                    <h2 class="text-2xl font-bold text-primary mb-6">New Housing Survey</h2>
+                    
+                    <form id="surveyForm" class="space-y-6">
+                        <!-- Surveyor Info -->
+                        <div class="border-b pb-4">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-3">Surveyor Information</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-gray-700 mb-1">Name</label>
+                                    <input type="text" id="surveyor-name" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                                </div>
+                                <div>
+                                    <label class="block text-gray-700 mb-1">Surname</label>
+                                    <input type="text" id="surveyor-surname" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Client Info -->
+                        <div class="border-b pb-4">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-3">Client Information</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-gray-700 mb-1">Name</label>
+                                    <input type="text" id="client-name" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                                </div>
+                                <div>
+                                    <label class="block text-gray-700 mb-1">Surname</label>
+                                    <input type="text" id="client-surname" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Property Info -->
+                        <div class="border-b pb-4">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-3">Property Information</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-gray-700 mb-1">Stand Number</label>
+                                    <input type="text" id="stand-number" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                                </div>
+                                <div>
+                                    <label class="block text-gray-700 mb-1">Plot Number</label>
+                                    <input type="text" id="plot-number" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                                </div>
+                                <div>
+                                    <label class="block text-gray-700 mb-1">Number of Occupants</label>
+                                    <select id="occupants" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                                        <option value="">Select number</option>
+                                        <script>
+                                            for (let i = 0; i <= 100; i++) {
+                                                document.write(`<option value="${i}">${i}</option>`);
+                                            }
+                                        </script>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-gray-700 mb-1">Duration of Occupancy (months)</label>
+                                    <input type="number" id="duration-occupancy" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4">
+                                <label class="block text-gray-700 mb-1">Photo of Property</label>
+                                <div class="camera-preview" onclick="openCamera('property-photo-preview', 'property-photo')">
+                                    <div id="property-photo-preview" class="text-gray-500">
+                                        <i class="fas fa-camera text-3xl"></i>
+                                        <p>Click to take photo</p>
+                                    </div>
+                                </div>
+                                <input type="file" id="property-photo" accept="image/*" capture="environment" class="hidden">
+                            </div>
+                            
+                            <div class="mt-4">
+                                <label class="block text-gray-700 mb-2">DB Box Present?</label>
+                                <div class="flex space-x-4">
+                                    <label class="inline-flex items-center">
+                                        <input type="radio" name="db-box" value="yes" class="text-primary focus:ring-primary" onchange="toggleDbBoxPhoto()">
+                                        <span class="ml-2">Yes</span>
+                                    </label>
+                                    <label class="inline-flex items-center">
+                                        <input type="radio" name="db-box" value="no" checked class="text-primary focus:ring-primary" onchange="toggleDbBoxPhoto()">
+                                        <span class="ml-2">No</span>
+                                    </label>
+                                </div>
+                                
+                                <div id="db-box-photo-container" class="mt-2 hidden">
+                                    <label class="block text-gray-700 mb-1">Photo of DB Box</label>
+                                    <div class="camera-preview" onclick="openCamera('db-box-photo-preview', 'db-box-photo')">
+                                        <div id="db-box-photo-preview" class="text-gray-500">
+                                            <i class="fas fa-camera text-3xl"></i>
+                                            <p>Click to take photo</p>
+                                        </div>
+                                    </div>
+                                    <input type="file" id="db-box-photo" accept="image/*" capture="environment" class="hidden">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Personal Info -->
+                        <div class="border-b pb-4">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-3">Personal Information</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-gray-700 mb-2">South African Citizen?</label>
+                                    <div class="flex space-x-4">
+                                        <label class="inline-flex items-center">
+                                            <input type="radio" name="citizen" value="yes" class="text-primary focus:ring-primary">
+                                            <span class="ml-2">Yes</span>
+                                        </label>
+                                        <label class="inline-flex items-center">
+                                            <input type="radio" name="citizen" value="no" class="text-primary focus:ring-primary">
+                                            <span class="ml-2">No</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-gray-700 mb-1">ID/Passport Number</label>
+                                    <input type="text" id="id-number" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4">
+                                <label class="block text-gray-700 mb-1">ID/Passport Photo</label>
+                                <div class="camera-preview" onclick="openCamera('id-photo-preview', 'id-photo')">
+                                    <div id="id-photo-preview" class="text-gray-500">
+                                        <i class="fas fa-camera text-3xl"></i>
+                                        <p>Click to take photo</p>
+                                    </div>
+                                </div>
+                                <input type="file" id="id-photo" accept="image/*" capture="environment" class="hidden">
+                            </div>
+                        </div>
+
+                        <!-- Housing Info -->
+                        <div class="border-b pb-4">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-3">Housing Information</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-gray-700 mb-1">Meter Number</label>
+                                    <input type="text" id="meter-number" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                                </div>
+                                <div>
+                                    <label class="block text-gray-700 mb-2">Applied for Housing?</label>
+                                    <div class="flex space-x-4">
+                                        <label class="inline-flex items-center">
+                                            <input type="radio" name="applied-housing" value="yes" class="text-primary focus:ring-primary">
+                                            <span class="ml-2">Yes</span>
+                                        </label>
+                                        <label class="inline-flex items-center">
+                                            <input type="radio" name="applied-housing" value="no" class="text-primary focus:ring-primary">
+                                            <span class="ml-2">No</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-gray-700 mb-1">Preferred Housing Type</label>
+                                    <select id="housing-type" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                                        <option value="">Select type</option>
+                                        <option value="RDP">RDP</option>
+                                        <option value="Unit/Flat to Rent">Unit/Flat to Rent</option>
+                                        <option value="Stand for self build">Stand for self build</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Notes -->
+                        <div>
+                            <label class="block text-gray-700 mb-1">Notes</label>
+                            <textarea id="notes" rows="3" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"></textarea>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="flex justify-end space-x-4 pt-4">
+                            <button type="button" onclick="resetForm()" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition">
+                                <i class="fas fa-redo mr-2"></i>Reset
+                            </button>
+                            <button type="button" onclick="submitSurvey()" class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition">
+                                <i class="fas fa-save mr-2"></i>Submit Survey
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Search Section -->
+                <div id="search-form" class="form-section p-6">
+                    <h2 class="text-2xl font-bold text-primary mb-6">Search Records</h2>
+                    
+                    <div class="bg-gray-50 p-4 rounded-lg mb-6">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-gray-700 mb-1">Client Name</label>
+                                <input type="text" id="search-name" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 mb-1">Client Surname</label>
+                                <input type="text" id="search-surname" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 mb-1">Stand Number</label>
+                                <input type="text" id="search-stand" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                            </div>
+                        </div>
+                        <div class="mt-4 flex justify-end">
+                            <button onclick="searchRecords()" class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition">
+                                <i class="fas fa-search mr-2"></i>Search
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="search-results" class="border rounded-lg overflow-hidden">
+                        <div class="bg-gray-100 px-4 py-2 border-b font-medium text-gray-700">
+                            <div class="grid grid-cols-4 gap-4">
+                                <div>Client</div>
+                                <div>Stand No.</div>
+                                <div>Plot No.</div>
+                                <div>Actions</div>
+                            </div>
+                        </div>
+                        <div id="results-container" class="divide-y">
+                            <!-- Results will be populated here -->
+                            <div class="px-4 py-3 text-center text-gray-500">
+                                No records found. Perform a search to see results.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reports Section -->
+                <div id="reports" class="form-section p-6">
+                    <h2 class="text-2xl font-bold text-primary mb-6">Reports</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-gray-500">Total Surveys</p>
+                                    <h3 class="text-2xl font-bold text-primary" id="total-surveys">0</h3>
+                                </div>
+                                <div class="bg-primary bg-opacity-10 p-3 rounded-full">
+                                    <i class="fas fa-clipboard-list text-primary text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-gray-500">Housing Applications</p>
+                                    <h3 class="text-2xl font-bold text-primary" id="housing-applications">0</h3>
+                                </div>
+                                <div class="bg-primary bg-opacity-10 p-3 rounded-full">
+                                    <i class="fas fa-home text-primary text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-gray-500">Avg. Occupants</p>
+                                    <h3 class="text-2xl font-bold text-primary" id="avg-occupants">0</h3>
+                                </div>
+                                <div class="bg-primary bg-opacity-10 p-3 rounded-full">
+                                    <i class="fas fa-users text-primary text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-4 mb-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Housing Type Distribution</h3>
+                        <div class="h-64" id="housing-chart">
+                            <!-- Chart will be rendered here -->
+                            <div class="flex items-center justify-center h-full text-gray-500">
+                                <p>Housing type distribution chart will appear here</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-4">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Generate Custom Report</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block text-gray-700 mb-1">Start Date</label>
+                                <input type="date" id="report-start-date" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 mb-1">End Date</label>
+                                <input type="date" id="report-end-date" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                            </div>
+                        </div>
+                        <div class="flex justify-end">
+                            <button onclick="generateReport()" class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition">
+                                <i class="fas fa-file-export mr-2"></i>Generate Report
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Modal -->
+        <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+            <div class="bg-white rounded-lg shadow-xl w-full max-w-md">
+                <div class="px-6 py-4 border-b">
+                    <h3 class="text-lg font-semibold text-gray-800" id="modal-title">Modal Title</h3>
+                </div>
+                <div class="p-6" id="modal-content">
+                    Modal content goes here
+                </div>
+                <div class="px-6 py-4 border-t flex justify-end">
+                    <button onclick="closeModal()" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simulated database
+        let surveys = [];
+        let users = [
+            { email: 'admin@surveypro.com', password: 'admin123', name: 'Admin User' }
+        ];
+        let currentUser = null;
+
+        // DOM Elements
+        const authSection = document.getElementById('auth-section');
+        const appSection = document.getElementById('app-section');
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        const userEmailSpan = document.getElementById('user-email');
+
+        // Auth Functions
+        function toggleAuthForms() {
+            loginForm.classList.toggle('hidden');
+            registerForm.classList.toggle('hidden');
+        }
+
+        function login() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            
+            const user = users.find(u => u.email === email && u.password === password);
+            
+            if (user) {
+                currentUser = user;
+                userEmailSpan.textContent = user.email;
+                authSection.classList.add('hidden');
+                appSection.classList.remove('hidden');
+                loadReports();
+            } else {
+                showModal('Login Failed', 'Invalid email or password. Please try again.');
+            }
+        }
+
+        function register() {
+            const name = document.getElementById('register-name').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            const confirmPassword = document.getElementById('register-confirm-password').value;
+            
+            if (password !== confirmPassword) {
+                showModal('Registration Failed', 'Passwords do not match.');
+                return;
+            }
+            
+            if (users.some(u => u.email === email)) {
+                showModal('Registration Failed', 'Email already registered.');
+                return;
+            }
+            
+            users.push({ email, password, name });
+            showModal('Registration Successful', 'You can now login with your credentials.');
+            toggleAuthForms();
+        }
+
+        function logout() {
+            currentUser = null;
+            appSection.classList.add('hidden');
+            authSection.classList.remove('hidden');
+            resetForm();
+        }
+
+        // Form Functions
+        function showSection(sectionId) {
+            document.querySelectorAll('.form-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(sectionId).classList.add('active');
+        }
+
+        function toggleDbBoxPhoto() {
+            const dbBoxYes = document.querySelector('input[name="db-box"][value="yes"]').checked;
+            const container = document.getElementById('db-box-photo-container');
+            
+            if (dbBoxYes) {
+                container.classList.remove('hidden');
+            } else {
+                container.classList.add('hidden');
+            }
+        }
+
+        function openCamera(previewId, inputId) {
+            const input = document.getElementById(inputId);
+            const preview = document.getElementById(previewId);
+            
+            input.onchange = function(e) {
+                if (input.files && input.files[0]) {
+                    const reader = new FileReader();
+                    
+                    reader.onload = function(e) {
+                        preview.innerHTML = `<img src="${e.target.result}" alt="Captured photo">`;
+                    }
+                    
+                    reader.readAsDataURL(input.files[0]);
+                }
+            };
+            
+            input.click();
+        }
+
+        function resetForm() {
+            document.getElementById('surveyForm').reset();
+            document.getElementById('db-box-photo-container').classList.add('hidden');
+            
+            // Reset photo previews
+            ['property-photo-preview', 'db-box-photo-preview', 'id-photo-preview'].forEach(id => {
+                const preview = document.getElementById(id);
+                preview.innerHTML = `
+                    <i class="fas fa-camera text-3xl"></i>
+                    <p>Click to take photo</p>
+                `;
+            });
+        }
+
+        function submitSurvey() {
+            // Check if surveyor info is filled
+            const surveyorName = document.getElementById('surveyor-name').value;
+            const surveyorSurname = document.getElementById('surveyor-surname').value;
+            
+            if (!surveyorName || !surveyorSurname) {
+                showModal('Validation Error', 'Please enter surveyor name and surname.');
+                return;
+            }
+            
+            // Check if client info is filled
+            const clientName = document.getElementById('client-name').value;
+            const clientSurname = document.getElementById('client-surname').value;
+            
+            if (!clientName || !clientSurname) {
+                showModal('Validation Error', 'Please enter client name and surname.');
+                return;
+            }
+            
+            // Check property info
+            const standNumber = document.getElementById('stand-number').value;
+            const plotNumber = document.getElementById('plot-number').value;
+            
+            if (!standNumber || !plotNumber) {
+                showModal('Validation Error', 'Please enter stand and plot numbers.');
+                return;
+            }
+            
+            // Check for duplicate record
+            const isDuplicate = surveys.some(s => 
+                s.clientName === clientName && 
+                s.clientSurname === clientSurname && 
+                s.standNumber === standNumber
+            );
+            
+            if (isDuplicate) {
+                showModal('Duplicate Record', 'A survey with these details already exists in the database.');
+                return;
+            }
+            
+            // Gather all data
+            const survey = {
+                surveyorName,
+                surveyorSurname,
+                clientName,
+                clientSurname,
+                standNumber,
+                plotNumber,
+                occupants: document.getElementById('occupants').value,
+                propertyPhoto: document.getElementById('property-photo-preview').innerHTML.includes('img') ? 'captured' : '',
+                dbBoxPresent: document.querySelector('input[name="db-box"]:checked').value,
+                dbBoxPhoto: document.getElementById('db-box-photo-preview').innerHTML.includes('img') ? 'captured' : '',
+                isCitizen: document.querySelector('input[name="citizen"]:checked')?.value || '',
+                idNumber: document.getElementById('id-number').value,
+                idPhoto: document.getElementById('id-photo-preview').innerHTML.includes('img') ? 'captured' : '',
+                meterNumber: document.getElementById('meter-number').value,
+                durationOccupancy: document.getElementById('duration-occupancy').value,
+                appliedForHousing: document.querySelector('input[name="applied-housing"]:checked')?.value || '',
+                housingType: document.getElementById('housing-type').value,
+                notes: document.getElementById('notes').value,
+                date: new Date().toISOString()
+            };
+            
+            // Add to "database"
+            surveys.push(survey);
+            
+            // Reset form and show success
+            resetForm();
+            showModal('Success', 'Survey submitted successfully!');
+            loadReports();
+        }
+
+        // Search Functions
+        function searchRecords() {
+            const name = document.getElementById('search-name').value.toLowerCase();
+            const surname = document.getElementById('search-surname').value.toLowerCase();
+            const stand = document.getElementById('search-stand').value.toLowerCase();
+            
+            const results = surveys.filter(s => 
+                (!name || s.clientName.toLowerCase().includes(name)) &&
+                (!surname || s.clientSurname.toLowerCase().includes(surname)) &&
+                (!stand || s.standNumber.toLowerCase().includes(stand))
+            );
+            
+            displayResults(results);
+        }
+
+        function displayResults(results) {
+            const container = document.getElementById('results-container');
+            
+            if (results.length === 0) {
+                container.innerHTML = '<div class="px-4 py-3 text-center text-gray-500">No records found matching your criteria.</div>';
+                return;
+            }
+            
+            let html = '';
+            results.forEach(survey => {
+                html += `
+                    <div class="grid grid-cols-4 gap-4 px-4 py-3 hover:bg-gray-50">
+                        <div>${survey.clientName} ${survey.clientSurname}</div>
+                        <div>${survey.standNumber}</div>
+                        <div>${survey.plotNumber}</div>
+                        <div>
+                            <button onclick="viewSurveyDetails('${survey.clientName}', '${survey.clientSurname}', '${survey.standNumber}')" class="text-primary hover:text-secondary">
+                                <i class="fas fa-eye mr-1"></i>View
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        function viewSurveyDetails(name, surname, stand) {
+            const survey = surveys.find(s => 
+                s.clientName === name && 
+                s.clientSurname === surname && 
+                s.standNumber === stand
+            );
+            
+            if (!survey) return;
+            
+            let html = `
+                <div class="space-y-4">
+                    <h4 class="font-semibold text-lg">Survey Details</h4>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <h5 class="font-medium text-gray-700">Surveyor</h5>
+                            <p>${survey.surveyorName} ${survey.surveyorSurname}</p>
+                        </div>
+                        <div>
+                            <h5 class="font-medium text-gray-700">Client</h5>
+                            <p>${survey.clientName} ${survey.clientSurname}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <h5 class="font-medium text-gray-700">Stand Number</h5>
+                            <p>${survey.standNumber}</p>
+                        </div>
+                        <div>
+                            <h5 class="font-medium text-gray-700">Plot Number</h5>
+                            <p>${survey.plotNumber}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <h5 class="font-medium text-gray-700">Occupants</h5>
+                            <p>${survey.occupants || 'N/A'}</p>
+                        </div>
+                        <div>
+                            <h5 class="font-medium text-gray-700">DB Box Present</h5>
+                            <p>${survey.dbBoxPresent === 'yes' ? 'Yes' : 'No'}</p>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h5 class="font-medium text-gray-700">Notes</h5>
+                        <p>${survey.notes || 'No notes provided'}</p>
+                    </div>
+                    
+                    <div class="pt-2 text-sm text-gray-500">
+                        <p>Survey conducted on: ${new Date(survey.date).toLocaleString()}</p>
+                    </div>
+                </div>
+            `;
+            
+            showModal('Survey Details', html);
+        }
+
+        // Report Functions
+        function loadReports() {
+            document.getElementById('total-surveys').textContent = surveys.length;
+            
+            const housingApps = surveys.filter(s => s.appliedForHousing === 'yes').length;
+            document.getElementById('housing-applications').textContent = housingApps;
+            
+            const totalOccupants = surveys.reduce((sum, s) => sum + (parseInt(s.occupants) || 0), 0);
+            const avgOccupants = surveys.length > 0 ? (totalOccupants / surveys.length).toFixed(1) : 0;
+            document.getElementById('avg-occupants').textContent = avgOccupants;
+            
+            updateHousingChart();
+        }
+
+        function updateHousingChart() {
+            const housingTypes = ['RDP', 'Unit/Flat to Rent', 'Stand for self build'];
+            const counts = {};
+            
+            housingTypes.forEach(type => {
+                counts[type] = surveys.filter(s => s.housingType === type).length;
+            });
+            
+            // In a real app, we would use a charting library here
+            const chartContainer = document.getElementById('housing-chart');
+            chartContainer.innerHTML = `
+                <div class="flex flex-col h-full justify-center">
+                    ${housingTypes.map(type => `
+                        <div class="mb-2">
+                            <div class="flex items-center">
+                                <div class="w-32 font-medium">${type}</div>
+                                <div class="flex-1 bg-gray-200 rounded-full h-4">
+                                    <div class="bg-primary h-4 rounded-full" style="width: ${(counts[type] / Math.max(1, surveys.length)) * 100}%"></div>
+                                </div>
+                                <div class="w-16 text-right">${counts[type]}</div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function generateReport() {
+            const startDate = document.getElementById('report-start-date').value;
+            const endDate = document.getElementById('report-end-date').value;
+            
+            if (!startDate || !endDate) {
+                showModal('Report Error', 'Please select both start and end dates.');
+                return;
+            }
+            
+            const filtered = surveys.filter(s => {
+                const surveyDate = new Date(s.date);
+                const start = new Date(startDate);
+                const end = new Date(endDate);
+                end.setDate(end.getDate() + 1); // Include end date
+                
+                return surveyDate >= start && surveyDate < end;
+            });
+            
+            showModal('Custom Report', `
+                <div class="space-y-4">
+                    <h4 class="font-semibold">Report for ${new Date(startDate).toLocaleDateString()} to ${new Date(endDate).toLocaleDateString()}</h4>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-gray-50 p-3 rounded-lg">
+                            <h5 class="font-medium text-gray-700">Total Surveys</h5>
+                            <p class="text-xl font-bold text-primary">${filtered.length}</p>
+                        </div>
+                        <div class="bg-gray-50 p-3 rounded-lg">
+                            <h5 class="font-medium text-gray-700">Housing Applications</h5>
+                            <p class="text-xl font-bold text-primary">${filtered.filter(s => s.appliedForHousing === 'yes').length}</p>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h5 class="font-medium text-gray-700 mb-2">Survey Summary</h5>
+                        <div class="bg-gray-50 p-3 rounded-lg max-h-60 overflow-y-auto">
+                            ${filtered.length > 0 ? 
+                                filtered.map(s => `
+                                    <div class="mb-2 pb-2 border-b">
+                                        <p class="font-medium">${s.clientName} ${s.clientSurname} - Stand ${s.standNumber}</p>
+                                        <p class="text-sm text-gray-600">${new Date(s.date).toLocaleString()}</p>
+                                    </div>
+                                `).join('') : 
+                                '<p class="text-gray-500">No surveys found in this date range.</p>'
+                            }
+                        </div>
+                    </div>
+                    
+                    <div class="pt-2">
+                        <button onclick="downloadReport('${startDate}', '${endDate}')" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition">
+                            <i class="fas fa-download mr-2"></i>Download Report
+                        </button>
+                    </div>
+                </div>
+            `);
+        }
+
+        function downloadReport(startDate, endDate) {
+            // In a real app, this would generate and download a report file
+            showModal('Download Started', 'Your report download has started. In a real application, this would generate a PDF or Excel file.');
+            closeModal();
+        }
+
+        // Modal Functions
+        function showModal(title, content) {
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-content').innerHTML = content;
+            document.getElementById('modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.add('hidden');
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Add some sample data for demo purposes
+            if (surveys.length === 0) {
+                surveys.push({
+                    surveyorName: 'John',
+                    surveyorSurname: 'Doe',
+                    clientName: 'Alice',
+                    clientSurname: 'Smith',
+                    standNumber: 'A12',
+                    plotNumber: '45',
+                    occupants: '3',
+                    propertyPhoto: 'captured',
+                    dbBoxPresent: 'yes',
+                    dbBoxPhoto: 'captured',
+                    isCitizen: 'yes',
+                    idNumber: '9001011234089',
+                    idPhoto: 'captured',
+                    meterNumber: 'M123456',
+                    durationOccupancy: '24',
+                    appliedForHousing: 'yes',
+                    housingType: 'RDP',
+                    notes: 'Client has been waiting for housing for 5 years.',
+                    date: '2023-05-15T10:30:00Z'
+                });
+                
+                surveys.push({
+                    surveyorName: 'Jane',
+                    surveyorSurname: 'Smith',
+                    clientName: 'Bob',
+                    clientSurname: 'Johnson',
+                    standNumber: 'B7',
+                    plotNumber: '22',
+                    occupants: '5',
+                    propertyPhoto: 'captured',
+                    dbBoxPresent: 'no',
+                    dbBoxPhoto: '',
+                    isCitizen: 'yes',
+                    idNumber: '8503051234089',
+                    idPhoto: 'captured',
+                    meterNumber: 'M789012',
+                    durationOccupancy: '36',
+                    appliedForHousing: 'no',
+                    housingType: 'Stand for self build',
+                    notes: 'Client prefers to build their own house if possible.',
+                    date: '2023-06-20T14:15:00Z'
+                });
+            }
+        });
+    </script>
+<p style="border-radius: 8px; text-align: center; font-size: 12px; color: #fff; margin-top: 16px;position: fixed; left: 8px; bottom: 8px; z-index: 10; background: rgba(0, 0, 0, 0.8); padding: 4px 8px;">Made with <img src="https://enzostvs-deepsite.hf.space/logo.svg" alt="DeepSite Logo" style="width: 16px; height: 16px; vertical-align: middle;display:inline-block;margin-right:3px;filter:brightness(0) invert(1);"><a href="https://enzostvs-deepsite.hf.space" style="color: #fff;text-decoration: underline;" target="_blank" >DeepSite</a> - 🧬 <a href="https://enzostvs-deepsite.hf.space?remix=Benz-o/housing-survey" style="color: #fff;text-decoration: underline;" target="_blank" >Remix</a></p></body>
+</html>
